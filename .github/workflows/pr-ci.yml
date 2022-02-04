@@ -21,6 +21,17 @@ jobs:
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
+
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+  
+      - name: Install pipenv and dependencies
+        run: |
+          sudo python -m pip install --upgrade pip
+          sudo python -m pip install pipenv 
+          pipenv install --dev --skip-lock
+  
+      - name: Lint and check styling
+        run: |
+          python -m pipenv run flake8 ./rubedo/ ./tests/ --count --show-source --statistics
