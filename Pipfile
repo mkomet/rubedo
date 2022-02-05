@@ -10,6 +10,8 @@ sqlalchemy = "*"
 flake8 = "*"
 flake8-commas = "*"
 flake8-black = "*"
+pytest = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.8"
