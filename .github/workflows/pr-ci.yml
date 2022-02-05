@@ -34,4 +34,19 @@ jobs:
   
       - name: Lint and check styling
         run: |
-          python -m pipenv run flake8 ./rubedo/ ./tests/ --count --show-source --statistics
+          python -m pipenv run flake8 ./rubedo/ ./tests/ \
+          --count --show-source --statistics
+        continue-on-error: true
+  
+      - name: Run tests 
+        run: |
+          python -m pipenv run python -m pytest \
+          --cov=rubedo/ \
+          --cov-report xml:rubedo_coverage.xml \
+          --cov-report annotate:coverage_annotations \
+          --cov-report html:coverage_html \
+          --junitxml=test-results-rubedo.xml \
+
+      - uses: codecov/codecov-action@v2
+        with:
+          files: ./rubedo_coverage.xml
