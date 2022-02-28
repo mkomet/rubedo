@@ -54,18 +54,22 @@ class MemoryView(ViewBase):
         def get_field_use_list_factory(field_name):
             def get_func(self):
                 with self._repo.uow():
-                    return list(set().union(*[getattr(model, field_name) for model in self._items]))
+                    return list(
+                        set().union(
+                            *[getattr(model, field_name) for model in self._items]
+                        )
+                    )
 
             return get_func
 
         for field in dataclasses.fields(model_cls):
-            origin = getattr(field.type, '__origin__', None)
+            origin = getattr(field.type, "__origin__", None)
             if origin is not None and issubclass(origin, List):
                 get_func = get_field_use_list_factory(field.name)
             else:
                 get_func = get_field_factory(field.name)
             bound_get_func = get_func.__get__(self, type(self))
-            setattr(self, f'all_{field.name}', bound_get_func)
+            setattr(self, f"all_{field.name}", bound_get_func)
 
     def union(self, views: Iterable[MemoryView]) -> MemoryView:
         pks = self.all_pk()
@@ -87,6 +91,7 @@ class MemoryView(ViewBase):
     def where(self, *args, **kwargs) -> MemoryView:
         def base_filter(_):
             return True
+
         filter_ = base_filter
 
         # args handling:
@@ -103,6 +108,7 @@ class MemoryView(ViewBase):
             # XXX eagerly evalute filter_ to prevent infinite loop
             def new_filter(model, filter_=filter_):
                 return getattr(model, key) == value and filter_(model)
+
             filter_ = new_filter
 
         pks = [model.pk for model in self._items if filter_(model)]
@@ -135,11 +141,11 @@ class MemoryRepositoryBase(RepositoryBase):
 
     def _verify_obj(self, obj: ModelBase):
         if not isinstance(obj, self._model_cls):
-            raise TypeError(f'model {type(obj)} is not valid for this repository')
+            raise TypeError(f"model {type(obj)} is not valid for this repository")
 
     def add(self, obj: ModelBase):
         self._verify_obj(obj)
-        pk = getattr(obj, 'pk')
+        pk = getattr(obj, "pk")
         if pk is None:
             obj.pk = len(self.get_items())
             self.get_items().append(obj)
@@ -148,9 +154,9 @@ class MemoryRepositoryBase(RepositoryBase):
 
     def remove(self, obj: ModelBase) -> None:
         self._verify_obj(obj)
-        pk = getattr(obj, 'pk')
+        pk = getattr(obj, "pk")
         if pk is None:
-            raise ValueError(f'model {obj} was never added to the repository')
+            raise ValueError(f"model {obj} was never added to the repository")
         self.get_items()[pk] = None  # keep something at this index so pks won't change
 
     def view(self, pks: List = None) -> MemoryView:
@@ -170,11 +176,12 @@ class MemoryRepositoryBase(RepositoryBase):
                 raise RuntimeError()
             result_view = view.where(field.contains(pattern))
             matches = dict(
-                (model.pk, getattr(model, field_name))
-                for model in result_view.all()
+                (model.pk, getattr(model, field_name)) for model in result_view.all()
             )
             matching_pks += matches.keys()
-            results[field_name] = RepositorySearchFieldResult(matches=matches, view=result_view)
+            results[field_name] = RepositorySearchFieldResult(
+                matches=matches, view=result_view
+            )
         return RepositorySearchResult(matching_pks, results)
 
     @contextmanager
@@ -223,10 +230,10 @@ class MemoryBackend(BackendBase):
             orig_init(self, *args, **kwargs)
 
         model_cls.__init__ = new_init
-        MemoryField.create(self._model_cls, 'pk')
+        MemoryField.create(self._model_cls, "pk")
 
     def create_repository(self) -> Type[RepositoryBase]:
-        if 'pk' not in [field.name for field in dataclasses.fields(self._model_cls)]:
+        if "pk" not in [field.name for field in dataclasses.fields(self._model_cls)]:
             self._add_pk()
 
         for field in dataclasses.fields(self._model_cls):

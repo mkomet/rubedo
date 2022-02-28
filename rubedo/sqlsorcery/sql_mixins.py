@@ -1,6 +1,9 @@
 import pprint
 from sqlalchemy import Text
-from sqlalchemy.ext.associationproxy import ASSOCIATION_PROXY, ColumnAssociationProxyInstance
+from sqlalchemy.ext.associationproxy import (
+    ASSOCIATION_PROXY,
+    ColumnAssociationProxyInstance,
+)
 from sqlalchemy.orm import Mapper, RelationshipProperty
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.inspection import inspect
@@ -12,7 +15,6 @@ from ..model import SUPER_MODELS
 
 
 class GetColumnsMixin:
-
     @staticmethod
     def _get_target_model(relation: RelationshipProperty):
         target_model = relation.argument
@@ -26,7 +28,12 @@ class GetColumnsMixin:
         show_pk: bool = False,
         show_hidden: bool = False,
         show_super: bool = True,
-    ) -> Dict[str, Union[InstrumentedAttribute, RelationshipProperty, ColumnAssociationProxyInstance]]:
+    ) -> Dict[
+        str,
+        Union[
+            InstrumentedAttribute, RelationshipProperty, ColumnAssociationProxyInstance
+        ],
+    ]:
         """
         Parses the classes attributes and returns a dictionary containing only the columns of the class
         by default, the pk column, and columns starting with '_' are not shown.
@@ -42,9 +49,9 @@ class GetColumnsMixin:
         result = {}
         # normal columns
         for name in inspector.columns.keys():
-            if name == 'pk' and not show_pk:
+            if name == "pk" and not show_pk:
                 continue
-            if name[0] == '_' and not show_hidden:
+            if name[0] == "_" and not show_hidden:
                 continue
             result[name] = getattr(cls, name)
 
@@ -57,14 +64,15 @@ class GetColumnsMixin:
 
         for name, relation in inspector.relationships.items():
             is_super = cls._get_target_model(relation) in super_models
-            if name in target_collections or (is_super and not show_super):  # skip anonymous tables
+            if name in target_collections or (
+                is_super and not show_super
+            ):  # skip anonymous tables
                 continue
             result[name] = relation
         return result
 
 
 class PPrintMixin(GetColumnsMixin):
-
     def __asdict_parse_relation(
         self,
         relation_prop: RelationshipProperty,
@@ -79,7 +87,7 @@ class PPrintMixin(GetColumnsMixin):
         if target_table in passed_tables:
             return None
         if print_id:
-            return f'{type(relation_value)} object at {hex(id(relation_value))}'
+            return f"{type(relation_value)} object at {hex(id(relation_value))}"
         if relation_prop.uselist:
             return [
                 relation_member._asdict(
@@ -90,7 +98,7 @@ class PPrintMixin(GetColumnsMixin):
                 )
                 for relation_member in relation_value
             ]
-        elif getattr(relation_value, '_asdict', None) is not None:
+        elif getattr(relation_value, "_asdict", None) is not None:
             return relation_value._asdict(
                 show_hidden=show_hidden,
                 show_super=show_super,
@@ -113,7 +121,9 @@ class PPrintMixin(GetColumnsMixin):
         if field_blacklist is None:
             field_blacklist = list()
         result = dict()
-        columns = self.get_columns(show_pk=show_hidden, show_hidden=show_hidden, show_super=show_super)
+        columns = self.get_columns(
+            show_pk=show_hidden, show_hidden=show_hidden, show_super=show_super
+        )
         passed_tables.insert(0, type(self))
         print_id = expand_level == 0
         if expand_level > 0:
@@ -211,7 +221,9 @@ def _init_init_and_repr(cls):
         annotations[column_name] = annotation
         namespace[column_name] = default
 
-    temp_cls = dataclasses.make_dataclass(cls.__name__, annotations.items(), namespace=namespace)
+    temp_cls = dataclasses.make_dataclass(
+        cls.__name__, annotations.items(), namespace=namespace
+    )
     old_init = cls.__init__
 
     @wraps(temp_cls.__init__)
@@ -220,5 +232,6 @@ def _init_init_and_repr(cls):
         temp = temp_cls(*args, **kwargs)
         # don't use dataclasses.asdict because we don't want to deepcopy the fields
         old_init(self, **temp.__dict__)
+
     cls.__init__ = new_init
     cls.__repr__ = temp_cls.__repr__

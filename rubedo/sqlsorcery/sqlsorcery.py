@@ -226,35 +226,55 @@ class SqlSorceryBackend(BackendBase):
                 index=True,
                 nullable=True,
             )
-            self_referencing = (self._table.name == getattr(enhanced_result.unwrapped_type, UNIQUE_NAME))
-            foreign_table = (self._table if self_referencing else enhanced_result.unwrapped_type.__table__)
+            self_referencing = self._table.name == getattr(
+                enhanced_result.unwrapped_type, UNIQUE_NAME
+            )
+            foreign_table = (
+                self._table
+                if self_referencing
+                else enhanced_result.unwrapped_type.__table__
+            )
             foreign_table.append_column(fk_column)
             if self_referencing:
                 # TODO: remote_side???
                 self._properties[field.name] = relationship(unwrapped_type)
             else:
-                sqlalchemy.inspect(enhanced_result.unwrapped_type).add_property(fk_name, column_property(fk_column))
-                self._properties[field.name] = relationship(unwrapped_type, backref=self._singular_name)
+                sqlalchemy.inspect(enhanced_result.unwrapped_type).add_property(
+                    fk_name, column_property(fk_column)
+                )
+                self._properties[field.name] = relationship(
+                    unwrapped_type, backref=self._singular_name
+                )
             return False
 
         if relation == Relations.MANY_TO_ONE:
             if other_tablename is None:
-                raise TypeError(f"MANY_TO_ONE is only supported on SQL tables (got {field.type})")
+                raise TypeError(
+                    f"MANY_TO_ONE is only supported on SQL tables (got {field.type})"
+                )
             other_pks = list(field.type.__table__.primary_key.columns)
             if len(other_pks) != 1:
-                raise TypeError(f"Cannot create MANY_TO_ONE relationship with composite pk (got {str(other_pks)})")
+                raise TypeError(
+                    f"Cannot create MANY_TO_ONE relationship with composite pk (got {str(other_pks)})"
+                )
             other_pk = other_pks[0]
-            self._table.append_column(Column(
-                f"_{field.name}_pk",
-                type(other_pk.type),
-                ForeignKey(f"{other_tablename}.pk"),
-                index=True,
-                nullable=True,
-            ))
-            self._properties[field.name] = relationship(field.type, backref=self._plural_name)
+            self._table.append_column(
+                Column(
+                    f"_{field.name}_pk",
+                    type(other_pk.type),
+                    ForeignKey(f"{other_tablename}.pk"),
+                    index=True,
+                    nullable=True,
+                )
+            )
+            self._properties[field.name] = relationship(
+                field.type, backref=self._plural_name
+            )
         return True
 
-    def _create_anonymous_table(self, field: dataclasses.Field, enhanced_result: EnhancedFieldResult) -> None:
+    def _create_anonymous_table(
+        self, field: dataclasses.Field, enhanced_result: EnhancedFieldResult
+    ) -> None:
         """
         Creates an "anonymous" table making a ONE_TO_MANY relation between this class and the anonymous table
         The anonymous table has 3 columns - integer pk, foreign key to this class, and the value required
@@ -266,9 +286,15 @@ class SqlSorceryBackend(BackendBase):
         new_namespace = RubedoDict()
         new_namespace[self.TABLE_NAME] = f"{self._tablename}_{field.name}_table"
         new_namespace[PLURAL_NAME] = field.name
-        cell_type, default = self._parse_simple_cell_type(enhanced_result.unwrapped_type, field.default)
+        cell_type, default = self._parse_simple_cell_type(
+            enhanced_result.unwrapped_type, field.default
+        )
         if isinstance(cell_type, Enum):
-            setattr(self._model_cls, enhanced_result.unwrapped_type.__name__, enhanced_result.unwrapped_type)
+            setattr(
+                self._model_cls,
+                enhanced_result.unwrapped_type.__name__,
+                enhanced_result.unwrapped_type,
+            )
 
         kwargs = RubedoDict(default=default)
         kwargs.update(enhanced_result.column_arguments)
@@ -306,23 +332,31 @@ class SqlSorceryBackend(BackendBase):
         for constraint in constraints:
             new_table.__table__.append_constraint(constraint)
 
-        self._properties[relation_name] = relationship(new_table, backref=self._singular_name)
+        self._properties[relation_name] = relationship(
+            new_table, backref=self._singular_name
+        )
         # XXX: silently breaks the abstraction
-        setattr(self._model_cls, field.name, association_proxy(
-            relation_name,
+        setattr(
+            self._model_cls,
             field.name,
-            creator=lambda value: new_table(**{field.name: value}),
-        ))
+            association_proxy(
+                relation_name,
+                field.name,
+                creator=lambda value: new_table(**{field.name: value}),
+            ),
+        )
 
     @staticmethod
-    def _parse_simple_cell_type(field_type: Type, field_default: Any) -> Tuple[Type, Any]:
+    def _parse_simple_cell_type(
+        field_type: Type, field_default: Any
+    ) -> Tuple[Type, Any]:
         """
         Parses a simple cell type - from a python type / Enum to a sql type / Enum, also setting the default value
         :param field_type: The type to be parsed
         :param field_default: The default value for the field
         :return: A tuple of the sql type, and the default value for the column
         """
-        is_enum = (inspect.isclass(field_type) and issubclass(field_type, enum.Enum))
+        is_enum = inspect.isclass(field_type) and issubclass(field_type, enum.Enum)
         if field_type not in _SQLALCHEMY_TYPES and not is_enum:
             raise TypeError()
 
@@ -338,9 +372,9 @@ class SqlSorceryBackend(BackendBase):
 
     @classmethod
     def _parse_simple_cell(
-            cls,
-            field: dataclasses.Field,
-            enhanced_result: EnhancedFieldResult,
+        cls,
+        field: dataclasses.Field,
+        enhanced_result: EnhancedFieldResult,
     ) -> Column:
         """
         Parses a simple cell, returning the appropriate Column
@@ -348,7 +382,9 @@ class SqlSorceryBackend(BackendBase):
         :param enhanced_result: The result of the EnhancedFields parsing
         :return: A :py:class:`Column` instance creating this fields column.
         """
-        column_type, default = cls._parse_simple_cell_type(enhanced_result.unwrapped_type, field.default)
+        column_type, default = cls._parse_simple_cell_type(
+            enhanced_result.unwrapped_type, field.default
+        )
         return Column(
             field.name,
             column_type,
@@ -358,7 +394,7 @@ class SqlSorceryBackend(BackendBase):
 
     @classmethod
     def mixins(cls) -> Tuple:
-        return (PPrintMixin, )
+        return (PPrintMixin,)
 
     @classmethod
     def use_autosetattr(cls) -> bool:
@@ -367,6 +403,7 @@ class SqlSorceryBackend(BackendBase):
     @classmethod
     def initialize_backend(cls, context):
         from .sqlutils import create_all
+
         with context.timeit("creating tables"):
             create_all(context.sql_engine)
         session_cls = sessionmaker()

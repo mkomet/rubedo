@@ -11,6 +11,7 @@ class BackendBase(abc.ABC):
     A base class for all the backends of rubedo - responsible for taking a model class,
     and generating a repository for it.
     """
+
     @abc.abstractmethod
     def __init__(self, model_cls: Type[ModelBase]):
         self._model_cls = model_cls
@@ -43,9 +44,13 @@ class BackendBase(abc.ABC):
 def set_backend(backend: Type[BackendBase]):
     global _backend
     if _backend is not None:
-        raise RuntimeError(f'tried to set backend to {backend} after it had already been set to {_backend}')
+        raise RuntimeError(
+            f"tried to set backend to {backend} after it had already been set to {_backend}"
+        )
     if not issubclass(backend, BackendBase):
-        raise TypeError(f'tried to set backend to {backend}, which doesn\'t inherit from {BackendBase}')
+        raise TypeError(
+            f"tried to set backend to {backend}, which doesn't inherit from {BackendBase}"
+        )
     _backend = backend
 
 
@@ -53,5 +58,6 @@ def get_backend() -> Type[BackendBase]:
     global _backend
     if _backend is None:
         from .sqlsorcery import SqlSorceryBackend
+
         _backend = SqlSorceryBackend
     return _backend

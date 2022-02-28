@@ -24,6 +24,7 @@ class InstrumentedFieldBase(abc.ABC):
     Base class for field descriptors able to provide a consistent py:func:`.filter` functionality
     between different backends.
     """
+
     @classmethod
     def create(cls, owner, name):
         new_field = cls(owner, name)
@@ -34,7 +35,7 @@ class InstrumentedFieldBase(abc.ABC):
 
     def __init__(self, owner, name):
         self._name = name
-        self._raw_field = f'_raw_{name}'
+        self._raw_field = f"_raw_{name}"
         self._owner = owner
 
     def __get__(self, instance, owner):
@@ -49,6 +50,7 @@ class InstrumentedFieldBase(abc.ABC):
         def filter_(model) -> bool:
             value = getattr(model, self._raw_field)
             return value is not None and func(value, *args, **kwargs)
+
         return FieldComparator(filter_)
 
     def __lt__(self, other) -> FieldComparator:
@@ -94,6 +96,7 @@ class InstrumentedFieldBase(abc.ABC):
         def in_(model):
             value = getattr(model, self._raw_field)
             return value is not None and model in value
+
         return FieldComparator(in_)
 
     def not_in(self, other) -> FieldComparator:
