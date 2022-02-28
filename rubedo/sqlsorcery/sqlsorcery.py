@@ -57,7 +57,8 @@ class SqlSorceryBackend(BackendBase):
     A class that parses Models, creates a suitable sqlalchemy table for them, and maps the model the table
     allowing for a "dataclasses" like definition of ORM compliant models, under the repository pattern.
     XXX:
-    fields created by this backend are not instances of py:class:`rubedo.backend.field_descriptors.InstrumentedFieldBase`
+    fields created by this backend are not instances of
+    py:class:`rubedo.backend.field_descriptors.InstrumentedFieldBase`
     (they use sa fields instead), but provide the same functionality.
     """
 
@@ -227,7 +228,8 @@ class SqlSorceryBackend(BackendBase):
                 nullable=True,
             )
             self_referencing = self._table.name == getattr(
-                enhanced_result.unwrapped_type, UNIQUE_NAME
+                enhanced_result.unwrapped_type,
+                UNIQUE_NAME,
             )
             foreign_table = (
                 self._table
@@ -240,22 +242,24 @@ class SqlSorceryBackend(BackendBase):
                 self._properties[field.name] = relationship(unwrapped_type)
             else:
                 sqlalchemy.inspect(enhanced_result.unwrapped_type).add_property(
-                    fk_name, column_property(fk_column)
+                    fk_name,
+                    column_property(fk_column),
                 )
                 self._properties[field.name] = relationship(
-                    unwrapped_type, backref=self._singular_name
+                    unwrapped_type,
+                    backref=self._singular_name,
                 )
             return False
 
         if relation == Relations.MANY_TO_ONE:
             if other_tablename is None:
                 raise TypeError(
-                    f"MANY_TO_ONE is only supported on SQL tables (got {field.type})"
+                    f"MANY_TO_ONE is only supported on SQL tables (got {field.type})",
                 )
             other_pks = list(field.type.__table__.primary_key.columns)
             if len(other_pks) != 1:
                 raise TypeError(
-                    f"Cannot create MANY_TO_ONE relationship with composite pk (got {str(other_pks)})"
+                    f"Cannot create MANY_TO_ONE relationship with composite pk (got {str(other_pks)})",
                 )
             other_pk = other_pks[0]
             self._table.append_column(
@@ -265,15 +269,18 @@ class SqlSorceryBackend(BackendBase):
                     ForeignKey(f"{other_tablename}.pk"),
                     index=True,
                     nullable=True,
-                )
+                ),
             )
             self._properties[field.name] = relationship(
-                field.type, backref=self._plural_name
+                field.type,
+                backref=self._plural_name,
             )
         return True
 
     def _create_anonymous_table(
-        self, field: dataclasses.Field, enhanced_result: EnhancedFieldResult
+        self,
+        field: dataclasses.Field,
+        enhanced_result: EnhancedFieldResult,
     ) -> None:
         """
         Creates an "anonymous" table making a ONE_TO_MANY relation between this class and the anonymous table
@@ -287,7 +294,8 @@ class SqlSorceryBackend(BackendBase):
         new_namespace[self.TABLE_NAME] = f"{self._tablename}_{field.name}_table"
         new_namespace[PLURAL_NAME] = field.name
         cell_type, default = self._parse_simple_cell_type(
-            enhanced_result.unwrapped_type, field.default
+            enhanced_result.unwrapped_type,
+            field.default,
         )
         if isinstance(cell_type, Enum):
             setattr(
@@ -333,7 +341,8 @@ class SqlSorceryBackend(BackendBase):
             new_table.__table__.append_constraint(constraint)
 
         self._properties[relation_name] = relationship(
-            new_table, backref=self._singular_name
+            new_table,
+            backref=self._singular_name,
         )
         # XXX: silently breaks the abstraction
         setattr(
@@ -348,7 +357,8 @@ class SqlSorceryBackend(BackendBase):
 
     @staticmethod
     def _parse_simple_cell_type(
-        field_type: Type, field_default: Any
+        field_type: Type,
+        field_default: Any,
     ) -> Tuple[Type, Any]:
         """
         Parses a simple cell type - from a python type / Enum to a sql type / Enum, also setting the default value
@@ -383,7 +393,8 @@ class SqlSorceryBackend(BackendBase):
         :return: A :py:class:`Column` instance creating this fields column.
         """
         column_type, default = cls._parse_simple_cell_type(
-            enhanced_result.unwrapped_type, field.default
+            enhanced_result.unwrapped_type,
+            field.default,
         )
         return Column(
             field.name,

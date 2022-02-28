@@ -171,7 +171,10 @@ class RepositoryBase(abc.ABC):
 
     @abc.abstractmethod
     def build_submodel_view(
-        self, view: ViewBase, field_name: str, submodel_cls: Type[ModelBase]
+        self,
+        view: ViewBase,
+        field_name: str,
+        submodel_cls: Type[ModelBase],
     ) -> ViewBase:
         """
         Build a new view, representing all the values of model.<field_name> for models of `view`.
@@ -184,7 +187,10 @@ class RepositoryBase(abc.ABC):
 
     @abc.abstractmethod
     def build_supermodel_view(
-        self, view: ViewBase, field_name: str, super_model_cls: Type[ModelBase]
+        self,
+        view: ViewBase,
+        field_name: str,
+        super_model_cls: Type[ModelBase],
     ) -> ViewBase:
         """
         Build a new view, representing all the values of model.<field_name> for models of `view`.

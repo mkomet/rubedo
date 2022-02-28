@@ -37,7 +37,8 @@ class EnhancedFieldResult:
         else:
             self.relation = other.relation
         if self.relation == Relations.ONE_TO_MANY and self.column_arguments.get(
-            "primary_key", False
+            "primary_key",
+            False,
         ):
             raise TypeError("ONE_TO_MANY relationship cannot be used as a primary key")
         return self
@@ -101,7 +102,10 @@ class EnhancedFieldBase(abc.ABC):
         raise NotImplementedError()
 
     def post(
-        self, orig_cls: Type, field: dataclasses.Field, result: EnhancedFieldResult
+        self,
+        orig_cls: Type,
+        field: dataclasses.Field,
+        result: EnhancedFieldResult,
     ) -> None:
         """
         A function which will be called at the end of parse, with the result of the parsing
@@ -164,7 +168,10 @@ class Indexed(EnhancedFieldBase):
         return EnhancedFieldResult(unwrapped_type=self._field_type)
 
     def post(
-        self, orig_cls: Type, orig_field: dataclasses.Field, result: EnhancedFieldResult
+        self,
+        orig_cls: Type,
+        orig_field: dataclasses.Field,
+        result: EnhancedFieldResult,
     ) -> None:
         column_name = orig_field.name
         full_column_name = f"{orig_cls.__uniquename__}__{column_name}"
@@ -200,7 +207,10 @@ class PrimaryKey(EnhancedFieldBase):
         )
 
     def post(
-        self, orig_cls: Type, field: dataclasses.Field, result: EnhancedFieldResult
+        self,
+        orig_cls: Type,
+        field: dataclasses.Field,
+        result: EnhancedFieldResult,
     ) -> None:
         if result.unwrapped_type is int:
             if result.column_arguments.get("autoincrement", None) is None:

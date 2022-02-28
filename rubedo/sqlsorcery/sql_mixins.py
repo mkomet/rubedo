@@ -31,7 +31,9 @@ class GetColumnsMixin:
     ) -> Dict[
         str,
         Union[
-            InstrumentedAttribute, RelationshipProperty, ColumnAssociationProxyInstance
+            InstrumentedAttribute,
+            RelationshipProperty,
+            ColumnAssociationProxyInstance,
         ],
     ]:
         """
@@ -122,7 +124,9 @@ class PPrintMixin(GetColumnsMixin):
             field_blacklist = list()
         result = dict()
         columns = self.get_columns(
-            show_pk=show_hidden, show_hidden=show_hidden, show_super=show_super
+            show_pk=show_hidden,
+            show_hidden=show_hidden,
+            show_super=show_super,
         )
         passed_tables.insert(0, type(self))
         print_id = expand_level == 0
@@ -222,7 +226,9 @@ def _init_init_and_repr(cls):
         namespace[column_name] = default
 
     temp_cls = dataclasses.make_dataclass(
-        cls.__name__, annotations.items(), namespace=namespace
+        cls.__name__,
+        annotations.items(),
+        namespace=namespace,
     )
     old_init = cls.__init__
 

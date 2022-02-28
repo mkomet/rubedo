@@ -54,11 +54,8 @@ class MemoryView(ViewBase):
         def get_field_use_list_factory(field_name):
             def get_func(self):
                 with self._repo.uow():
-                    return list(
-                        set().union(
-                            *[getattr(model, field_name) for model in self._items]
-                        )
-                    )
+                    fields = [getattr(model, field_name) for model in self._items]
+                    return list(set().union(*fields))
 
             return get_func
 
@@ -180,7 +177,8 @@ class MemoryRepositoryBase(RepositoryBase):
             )
             matching_pks += matches.keys()
             results[field_name] = RepositorySearchFieldResult(
-                matches=matches, view=result_view
+                matches=matches,
+                view=result_view,
             )
         return RepositorySearchResult(matching_pks, results)
 
