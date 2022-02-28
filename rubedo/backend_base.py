@@ -1,7 +1,7 @@
 import abc
-from typing import Type, Tuple
-from .repository_base import ModelBase, RepositoryBase
+from typing import Tuple, Type
 
+from .repository_base import ModelBase, RepositoryBase
 
 _backend = None
 

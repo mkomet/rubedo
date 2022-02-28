@@ -1,15 +1,16 @@
+import dataclasses
 import pprint
+from functools import wraps
+from typing import Any, Dict, List, Optional, Union
+
 from sqlalchemy import Text
 from sqlalchemy.ext.associationproxy import (
     ASSOCIATION_PROXY,
     ColumnAssociationProxyInstance,
 )
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import Mapper, RelationshipProperty
 from sqlalchemy.orm.attributes import InstrumentedAttribute
-from sqlalchemy.inspection import inspect
-from typing import Optional, List, Dict, Union, Any
-import dataclasses
-from functools import wraps
 
 from ..model import SUPER_MODELS
 

@@ -1,21 +1,22 @@
 from __future__ import annotations
 
+from contextlib import ExitStack, contextmanager
+from itertools import chain
+from typing import Any, Dict, Iterable, List, Type
+
+import sqlalchemy.ext.associationproxy
 import sqlalchemy.orm
 import sqlalchemy.orm.attributes
-import sqlalchemy.ext.associationproxy
 import sqlalchemy.sql
 from sqlalchemy.orm import Session
-from typing import List, Any, Dict, Type, Iterable
-from contextlib import contextmanager, ExitStack
-from itertools import chain
 
+from ..model import ModelBase
 from ..repository_base import (
     RepositoryBase,
-    ViewBase,
-    RepositorySearchResult,
     RepositorySearchFieldResult,
+    RepositorySearchResult,
+    ViewBase,
 )
-from ..model import ModelBase
 from ..utils import RubedoDict
 
 

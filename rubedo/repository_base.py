@@ -3,7 +3,8 @@ from __future__ import annotations
 import abc
 import dataclasses
 from contextlib import contextmanager
-from typing import List, Type, Iterable, Any, Dict
+from typing import Any, Dict, Iterable, List, Type
+
 from .model_base import ModelBase
 from .utils import RubedoDict
 

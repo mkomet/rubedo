@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 import dataclasses
 import functools
 import operator
-
-from typing import List, Type, Iterable
 from contextlib import contextmanager
+from typing import Iterable, List, Type
+
+from .backend_base import BackendBase
+from .field_descriptors import FieldComparator, InstrumentedFieldBase
+from .model_base import ModelBase
 from .repository_base import (
     RepositoryBase,
-    ViewBase,
-    RepositorySearchResult,
     RepositorySearchFieldResult,
+    RepositorySearchResult,
+    ViewBase,
 )
-from .model_base import ModelBase
-from .field_descriptors import InstrumentedFieldBase, FieldComparator
-from .backend_base import BackendBase
 from .utils import RubedoDict
 
 

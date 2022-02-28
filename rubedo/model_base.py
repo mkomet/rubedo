@@ -1,12 +1,12 @@
 from __future__ import annotations
+
 import abc
 import dataclasses
-import json
 import datetime
 import hashlib
+import json
 from enum import Enum
 from typing import Dict
-
 
 PLURAL_NAME = "__membersname__"
 SINGULAR_NAME = "__membername__"

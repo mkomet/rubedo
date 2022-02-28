@@ -1,9 +1,10 @@
-import re
 import contextlib
+import re
 
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.engine import Engine
 from sqlalchemy import Index
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
+
 from .sqlsorcery import metadata
 
 

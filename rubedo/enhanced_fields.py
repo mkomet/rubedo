@@ -1,11 +1,12 @@
 from __future__ import annotations
-from typing import Type, Dict, List, Any, Optional, Union
-import abc
 
-from sqlalchemy import text, Index
-from sqlalchemy.schema import Constraint
+import abc
 import dataclasses
 import enum
+from typing import Any, Dict, List, Optional, Type, Union
+
+from sqlalchemy import Index, text
+from sqlalchemy.schema import Constraint
 
 # just some sane value, feel free to change
 _DEFAULT_STRING_INDEX_LENGTH = 64
