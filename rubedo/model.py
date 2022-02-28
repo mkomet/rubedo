@@ -1,18 +1,17 @@
 import dataclasses
-from typing import get_type_hints, List, Type
+from typing import List, Type, get_type_hints
 
+from . import backend_base
 from .enhanced_fields import EnhancedFieldBase, Relations
 from .model_base import (
-    ModelBase,
-    SINGULAR_NAME,
-    PLURAL_NAME,
-    UNIQUE_NAME,
+    AUTO_SETATTR,
     BACKREF,
     BACKREF_USELIST,
-    AUTO_SETATTR,
+    PLURAL_NAME,
+    SINGULAR_NAME,
+    UNIQUE_NAME,
+    ModelBase,
 )
-from . import backend_base
-
 
 ANNOTATIONS = "__annotations__"
 DOC = "__doc__"

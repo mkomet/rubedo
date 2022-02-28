@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-import pytest
-from sqlalchemy.orm import Session
 from typing import List, Tuple
 
-from rubedo import rubedo_model
+import pytest
+from sqlalchemy.orm import Session
 
+from rubedo import rubedo_model
 
 _DEFAULT_BYTES = b"wah-ne day more"
 _DEFAULT_STR = "mario... mario!! mario!!!!?!?"

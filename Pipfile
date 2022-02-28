@@ -12,6 +12,7 @@ flake8-commas = "*"
 flake8-black = "*"
 pytest = "*"
 pytest-cov = "*"
+flake8-isort = "*"
 
 [requires]
 python_version = "3.8"

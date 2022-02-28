@@ -1,11 +1,13 @@
 import dataclasses
 import datetime
 import enum
+import inspect
+from typing import Any, Dict, Optional, Tuple, Type
 
 import sqlalchemy
 from sqlalchemy import (
-    Boolean,
     BigInteger,
+    Boolean,
     Column,
     DateTime,
     Enum,
@@ -13,28 +15,25 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     LargeBinary,
-    Text,
     MetaData,
     Table,
+    Text,
 )
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import (
-    relationship,
-    synonym,
-    registry,
     column_property,
+    registry,
+    relationship,
     sessionmaker,
+    synonym,
 )
-from typing import Tuple, Type, Dict, Any, Optional
-import inspect
 
-from ..enhanced_fields import EnhancedFieldResult, Relations
-from ..model import ModelBase, PLURAL_NAME, SINGULAR_NAME, ENHANCED, UNIQUE_NAME
-from ..utils import RubedoDict
 from ..backend_base import BackendBase
-from .sqlalchemy_repository import SqlalchemyRepositoryBase
+from ..enhanced_fields import EnhancedFieldResult, Relations
+from ..model import ENHANCED, PLURAL_NAME, SINGULAR_NAME, UNIQUE_NAME, ModelBase
+from ..utils import RubedoDict
 from .sql_mixins import PPrintMixin, _init_init_and_repr
-
+from .sqlalchemy_repository import SqlalchemyRepositoryBase
 
 # Explicitly state the max length, so sqlalchemy can use MEDIUMTEXT/LONGTEXT in MySQL
 _MAX_TEXT_LENGTH = 2 << 23
