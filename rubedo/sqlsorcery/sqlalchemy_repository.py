@@ -76,7 +76,13 @@ class SqlalchemyView(ViewBase):
                 session = self._repo._session
                 with self._repo.uow():
                     pks = chain(*self._query.with_entities(self._model_cls.pk).all())
-                    return list(chain(*session.query(proxied_column).filter(proxied_model.fk.in_(pks)).all()))
+                    return list(
+                        chain(
+                            *session.query(proxied_column)
+                            .filter(proxied_model.fk.in_(pks))
+                            .all()
+                        )
+                    )
 
             return get_func
 
@@ -84,33 +90,43 @@ class SqlalchemyView(ViewBase):
             def get_func(self) -> List:
                 session = self._repo._session
                 with self._repo.uow():
-                    return session.query(column_type.argument).join(self._query.subquery()).all()
+                    return (
+                        session.query(column_type.argument)
+                        .join(self._query.subquery())
+                        .all()
+                    )
+
             return get_func
 
         singular_name = model.__membername__
         for column, column_type in model.get_columns(show_pk=True).items():
-            doc_base = f'[{singular_name}.{column} for {singular_name} in this_{type(self).__name__.lower()}.all()]'
+            doc_base = f"[{singular_name}.{column} for {singular_name} in this_{type(self).__name__.lower()}.all()]"
             if isinstance(column_type, sqlalchemy.orm.attributes.InstrumentedAttribute):
                 get_func = get_factory_normal(column_type)
-                doc = f'Returns {doc_base}\n'
-            elif isinstance(column_type, sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance):
+                doc = f"Returns {doc_base}\n"
+            elif isinstance(
+                column_type,
+                sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance,
+            ):
                 get_func = get_factory_proxy(column_type, column)
-                doc = f'Returns the union of {doc_base}\n'
-            elif isinstance(column_type, sqlalchemy.orm.properties.RelationshipProperty):
+                doc = f"Returns the union of {doc_base}\n"
+            elif isinstance(
+                column_type, sqlalchemy.orm.properties.RelationshipProperty
+            ):
                 get_func = get_factory_relation(column_type)
-                doc = f'Returns the union of {doc_base}, this is equivalent to a subgroup / supergroup\n'
+                doc = f"Returns the union of {doc_base}, this is equivalent to a subgroup / supergroup\n"
             else:
                 continue
             get_func.__doc__ = doc
             # bind the function to the instance:
             bound_get_func = get_func.__get__(self, type(self))
-            setattr(self, f'all_{column}', bound_get_func)
+            setattr(self, f"all_{column}", bound_get_func)
 
     def union(self, views: Iterable[SqlalchemyView]) -> SqlalchemyView:
         # SQLAlchemy's union doesn't support generators
-        query = self._from_self().union(*[
-            view._repo._calculate(view)._query for view in views
-        ])
+        query = self._from_self().union(
+            *[view._repo._calculate(view)._query for view in views]
+        )
         return type(self)(self._repo, query, clean=False)
 
     def count(self) -> int:
@@ -175,7 +191,7 @@ class SqlalchemyView(ViewBase):
                 query = query.filter_by(**kwargs)
             else:
                 fixed_kwargs = {
-                    f'{self._model_cls.__tablename__}_{key}': value
+                    f"{self._model_cls.__tablename__}_{key}": value
                     for key, value in kwargs.items()
                 }
                 query = query.filter_by(**fixed_kwargs)
@@ -195,8 +211,8 @@ class SqlalchemyRepositoryBase(RepositoryBase):
             self._query = self._session.query(self._model_cls)
         except Exception as error:
             raise RuntimeError(
-                f'caught exception: \'{error}\', while querying: \'{context.sql_engine.url}\', '
-                f'for table: \'{self._model_cls.__tablename__}\'',
+                f"caught exception: '{error}', while querying: '{context.sql_engine.url}', "
+                f"for table: '{self._model_cls.__tablename__}'",
             )
 
     def __init_subclass__(cls, model_cls=None, **kwargs):
@@ -239,11 +255,11 @@ class SqlalchemyRepositoryBase(RepositoryBase):
         return self.view(pks=pks)
 
     def _search_association_proxy(
-            self,
-            view: SqlalchemyView,
-            pattern: str,
-            field_name: str,
-            field: sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance,
+        self,
+        view: SqlalchemyView,
+        pattern: str,
+        field_name: str,
+        field: sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance,
     ) -> Dict[int, Any]:  # noqa: F821
         """
         Search for a pattern contained inside relevant values of an anonymous table
@@ -256,27 +272,29 @@ class SqlalchemyRepositoryBase(RepositoryBase):
         """
         pks = view._query.from_self(self._model_cls.pk).all()
         pks = list(map(lambda p: p[0], pks))
-        query = self._session.query(
-            field.target_class,
-        ).join(
-            self._model_cls,
-        ).filter(
-            self._model_cls.pk.in_(pks),
-        ).filter(
-            getattr(field.target_class, field_name).contains(pattern),
+        query = (
+            self._session.query(
+                field.target_class,
+            )
+            .join(
+                self._model_cls,
+            )
+            .filter(
+                self._model_cls.pk.in_(pks),
+            )
+            .filter(
+                getattr(field.target_class, field_name).contains(pattern),
+            )
         )
 
-        return {
-            row.fk: getattr(row, field_name)
-            for row in query.all()
-        }
+        return {row.fk: getattr(row, field_name) for row in query.all()}
 
     # TODO: support regex (sa 1.4 has column.regexp_match)
     def search(
-            self,
-            view: SqlalchemyView,
-            pattern: str,
-            search_fields: List[str],
+        self,
+        view: SqlalchemyView,
+        pattern: str,
+        search_fields: List[str],
     ) -> RepositorySearchResult:
         results = RubedoDict()
         matching_pks = []
@@ -284,8 +302,12 @@ class SqlalchemyRepositoryBase(RepositoryBase):
             field = getattr(self._model_cls, field_name, None)
             if field is None:
                 raise RuntimeError()
-            if isinstance(field, sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance):
-                matches = self._search_association_proxy(view, pattern, field_name, field)
+            if isinstance(
+                field, sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance
+            ):
+                matches = self._search_association_proxy(
+                    view, pattern, field_name, field
+                )
                 result_view = None  # TODO: maybe automatically create views for associations proxies?
             else:
                 result_view = view.where(field.contains(pattern))
@@ -296,7 +318,9 @@ class SqlalchemyRepositoryBase(RepositoryBase):
                     ).all(),
                 )
             matching_pks += matches.keys()
-            results[field_name] = RepositorySearchFieldResult(matches=matches, view=result_view)
+            results[field_name] = RepositorySearchFieldResult(
+                matches=matches, view=result_view
+            )
         return RepositorySearchResult(matching_pks, results)
 
     @contextmanager
@@ -311,7 +335,9 @@ class SqlalchemyRepositoryBase(RepositoryBase):
             # cancel the rollback if everything went smoothly
             stack.pop_all()
 
-    def _build_relation_view(self, view: ViewBase, related_model_cls: Type[ModelBase]) -> SqlalchemyView:
+    def _build_relation_view(
+        self, view: ViewBase, related_model_cls: Type[ModelBase]
+    ) -> SqlalchemyView:
         """
         Build a view across SA's relationship property. support both MANY_TO_ONE and ONE_TO_MANY relations
         """
@@ -322,17 +348,17 @@ class SqlalchemyRepositoryBase(RepositoryBase):
         return SqlalchemyView(repo, query, subquery=subquery, clean=False)
 
     def build_submodel_view(
-            self,
-            view: ViewBase,
-            field_name: str,
-            submodel_cls: Type[ModelBase],
+        self,
+        view: ViewBase,
+        field_name: str,
+        submodel_cls: Type[ModelBase],
     ) -> SqlalchemyView:
         return self._build_relation_view(view, submodel_cls)
 
     def build_supermodel_view(
-            self,
-            view: ViewBase,
-            field_name: str,
-            super_model_cls: Type[ModelBase],
+        self,
+        view: ViewBase,
+        field_name: str,
+        super_model_cls: Type[ModelBase],
     ) -> SqlalchemyView:
         return self._build_relation_view(view, super_model_cls)

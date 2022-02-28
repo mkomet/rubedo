@@ -121,10 +121,10 @@ class RepositoryBase(abc.ABC):
 
     @abc.abstractmethod
     def search(
-            self,
-            view: ViewBase,
-            pattern: str,
-            search_fields: List[str],
+        self,
+        view: ViewBase,
+        pattern: str,
+        search_fields: List[str],
     ) -> RepositorySearchResult:
         """
         Search a view for a pattern contained in any field of the `search_fields`
@@ -170,7 +170,9 @@ class RepositoryBase(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def build_submodel_view(self, view: ViewBase, field_name: str, submodel_cls: Type[ModelBase]) -> ViewBase:
+    def build_submodel_view(
+        self, view: ViewBase, field_name: str, submodel_cls: Type[ModelBase]
+    ) -> ViewBase:
         """
         Build a new view, representing all the values of model.<field_name> for models of `view`.
         :param view: The view to build from
@@ -181,7 +183,9 @@ class RepositoryBase(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def build_supermodel_view(self, view: ViewBase, field_name: str, super_model_cls: Type[ModelBase]) -> ViewBase:
+    def build_supermodel_view(
+        self, view: ViewBase, field_name: str, super_model_cls: Type[ModelBase]
+    ) -> ViewBase:
         """
         Build a new view, representing all the values of model.<field_name> for models of `view`.
         :param view: The view to build from

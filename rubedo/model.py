@@ -138,4 +138,5 @@ def rubedo_model(
         repo = chosen_backend(new_cls).create_repository()
         new_cls.repository_cls = repo
         return new_cls
+
     return _wrap

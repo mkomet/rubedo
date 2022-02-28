@@ -21,6 +21,7 @@ class EnhancedFieldResult:
     """
     A class that holds the information needed by :py:mod:`rubedo.backend.model` to apply all the EnhancedFields
     """
+
     unwrapped_type: Optional[Type] = None
     table_constraints: List[Constraint] = dataclasses.field(default_factory=list)
     column_arguments: Dict[str, Any] = dataclasses.field(default_factory=dict)
@@ -32,11 +33,13 @@ class EnhancedFieldResult:
         self.column_arguments.update(other.column_arguments)
         if self.relation is not None:
             if other.relation is not None and self.relation != other.relation:
-                raise TypeError('More than one relation requested')
+                raise TypeError("More than one relation requested")
         else:
             self.relation = other.relation
-        if self.relation == Relations.ONE_TO_MANY and self.column_arguments.get('primary_key', False):
-            raise TypeError('ONE_TO_MANY relationship cannot be used as a primary key')
+        if self.relation == Relations.ONE_TO_MANY and self.column_arguments.get(
+            "primary_key", False
+        ):
+            raise TypeError("ONE_TO_MANY relationship cannot be used as a primary key")
         return self
 
 
@@ -78,6 +81,7 @@ class EnhancedFieldBase(abc.ABC):
         apropriate field (unless you like infinite recursion). see Indexed for an example
 
     """
+
     # TODO the second example isn't showing in readthedocs
     def __init__(self, field_type: Union[Type, EnhancedFieldBase]):
         self._field_type = field_type
@@ -96,7 +100,9 @@ class EnhancedFieldBase(abc.ABC):
         """
         raise NotImplementedError()
 
-    def post(self, orig_cls: Type, field: dataclasses.Field, result: EnhancedFieldResult) -> None:
+    def post(
+        self, orig_cls: Type, field: dataclasses.Field, result: EnhancedFieldResult
+    ) -> None:
         """
         A function which will be called at the end of parse, with the result of the parsing
         """
@@ -122,11 +128,11 @@ class EnhancedFieldBase(abc.ABC):
 
         relation_result = EnhancedFieldResult(unwrapped_type=result.unwrapped_type)
 
-        origin = getattr(field_type, '__origin__', None)
+        origin = getattr(field_type, "__origin__", None)
         if origin is not None and issubclass(origin, List):
             relation_result.relation = Relations.ONE_TO_MANY
-            relation_result.unwrapped_type, = field_type.__args__
-        elif getattr(field_type, '__enhancedfields__', None) is not None:
+            (relation_result.unwrapped_type,) = field_type.__args__
+        elif getattr(field_type, "__enhancedfields__", None) is not None:
             relation_result.relation = Relations.MANY_TO_ONE
         result += relation_result
 
@@ -145,21 +151,31 @@ class Indexed(EnhancedFieldBase):
     """
     Builds a sql index for the field
     """
-    def __init__(self, field_type: Union[Type, EnhancedFieldBase], length: int = _DEFAULT_STRING_INDEX_LENGTH):
+
+    def __init__(
+        self,
+        field_type: Union[Type, EnhancedFieldBase],
+        length: int = _DEFAULT_STRING_INDEX_LENGTH,
+    ):
         self._length = length
         super().__init__(field_type)
 
     def build(self, orig_cls: Type, field: dataclasses.Field) -> EnhancedFieldResult:
         return EnhancedFieldResult(unwrapped_type=self._field_type)
 
-    def post(self, orig_cls: Type, orig_field: dataclasses.Field, result: EnhancedFieldResult) -> None:
+    def post(
+        self, orig_cls: Type, orig_field: dataclasses.Field, result: EnhancedFieldResult
+    ) -> None:
         column_name = orig_field.name
-        full_column_name = f'{orig_cls.__uniquename__}__{column_name}'
+        full_column_name = f"{orig_cls.__uniquename__}__{column_name}"
         field_type = result.unwrapped_type
         if field_type in (bytes, str):
-            index = Index(f'ix_{full_column_name}', text(f'substr(`{column_name}`, 1, {self._length})'))
+            index = Index(
+                f"ix_{full_column_name}",
+                text(f"substr(`{column_name}`, 1, {self._length})"),
+            )
         else:
-            index = Index(f'ix_{full_column_name}', column_name)
+            index = Index(f"ix_{full_column_name}", column_name)
 
         result.table_constraints.append(index)
 
@@ -169,6 +185,7 @@ class PrimaryKey(EnhancedFieldBase):
     Marks the field's column as a primary key for the table.
     If the field is an int, it is also auto incremented (unless some other enhanced fields says otherwise)
     """
+
     def __init__(self, field_type: Union[Type, EnhancedFieldBase], **kwargs):
         self._kwargs = kwargs
         super().__init__(field_type)
@@ -182,16 +199,19 @@ class PrimaryKey(EnhancedFieldBase):
             column_args,
         )
 
-    def post(self, orig_cls: Type, field: dataclasses.Field, result: EnhancedFieldResult) -> None:
+    def post(
+        self, orig_cls: Type, field: dataclasses.Field, result: EnhancedFieldResult
+    ) -> None:
         if result.unwrapped_type is int:
-            if result.column_arguments.get('autoincrement', None) is None:
-                result.column_arguments['autoincrement'] = True
+            if result.column_arguments.get("autoincrement", None) is None:
+                result.column_arguments["autoincrement"] = True
 
 
 class Unique(EnhancedFieldBase):
     """
     Marks the field's column as unique
     """
+
     def build(self, orig_cls: Type, field: dataclasses.Field) -> EnhancedFieldResult:
         return EnhancedFieldResult(
             unwrapped_type=self.field_type,
@@ -203,10 +223,12 @@ class NonNullable(EnhancedFieldBase):
     """
     Marks the field's column as non nullable
     """
+
     def build(self, orig_cls: Type, field: dataclasses.Field) -> EnhancedFieldResult:
         return EnhancedFieldResult(
             unwrapped_type=self.field_type,
             column_arguments=dict(nullable=False),
         )
+
 
 # TODO: add DiskBacked enhanced field that saves the field to disk and loads it automatically on queries - issue #86
