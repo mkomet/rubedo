@@ -36,7 +36,6 @@ jobs:
         run: |
           python -m pipenv run flake8 ./rubedo/ ./tests/ \
           --count --show-source --statistics
-        continue-on-error: true
   
       - name: Run tests 
         run: |
