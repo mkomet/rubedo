@@ -45,11 +45,11 @@ def set_backend(backend: Type[BackendBase]):
     global _backend
     if _backend is not None:
         raise RuntimeError(
-            f"tried to set backend to {backend} after it had already been set to {_backend}"
+            f"tried to set backend to {backend} after it had already been set to {_backend}",
         )
     if not issubclass(backend, BackendBase):
         raise TypeError(
-            f"tried to set backend to {backend}, which doesn't inherit from {BackendBase}"
+            f"tried to set backend to {backend}, which doesn't inherit from {BackendBase}",
         )
     _backend = backend
 

@@ -80,8 +80,8 @@ class SqlalchemyView(ViewBase):
                         chain(
                             *session.query(proxied_column)
                             .filter(proxied_model.fk.in_(pks))
-                            .all()
-                        )
+                            .all(),
+                        ),
                     )
 
             return get_func
@@ -111,7 +111,8 @@ class SqlalchemyView(ViewBase):
                 get_func = get_factory_proxy(column_type, column)
                 doc = f"Returns the union of {doc_base}\n"
             elif isinstance(
-                column_type, sqlalchemy.orm.properties.RelationshipProperty
+                column_type,
+                sqlalchemy.orm.properties.RelationshipProperty,
             ):
                 get_func = get_factory_relation(column_type)
                 doc = f"Returns the union of {doc_base}, this is equivalent to a subgroup / supergroup\n"
@@ -125,7 +126,7 @@ class SqlalchemyView(ViewBase):
     def union(self, views: Iterable[SqlalchemyView]) -> SqlalchemyView:
         # SQLAlchemy's union doesn't support generators
         query = self._from_self().union(
-            *[view._repo._calculate(view)._query for view in views]
+            *[view._repo._calculate(view)._query for view in views],
         )
         return type(self)(self._repo, query, clean=False)
 
@@ -303,10 +304,14 @@ class SqlalchemyRepositoryBase(RepositoryBase):
             if field is None:
                 raise RuntimeError()
             if isinstance(
-                field, sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance
+                field,
+                sqlalchemy.ext.associationproxy.ColumnAssociationProxyInstance,
             ):
                 matches = self._search_association_proxy(
-                    view, pattern, field_name, field
+                    view,
+                    pattern,
+                    field_name,
+                    field,
                 )
                 result_view = None  # TODO: maybe automatically create views for associations proxies?
             else:
@@ -319,7 +324,8 @@ class SqlalchemyRepositoryBase(RepositoryBase):
                 )
             matching_pks += matches.keys()
             results[field_name] = RepositorySearchFieldResult(
-                matches=matches, view=result_view
+                matches=matches,
+                view=result_view,
             )
         return RepositorySearchResult(matching_pks, results)
 
@@ -336,7 +342,9 @@ class SqlalchemyRepositoryBase(RepositoryBase):
             stack.pop_all()
 
     def _build_relation_view(
-        self, view: ViewBase, related_model_cls: Type[ModelBase]
+        self,
+        view: ViewBase,
+        related_model_cls: Type[ModelBase],
     ) -> SqlalchemyView:
         """
         Build a view across SA's relationship property. support both MANY_TO_ONE and ONE_TO_MANY relations
