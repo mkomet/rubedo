@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 sqlalchemy = "*"
+pipenv-setup = "*"
 
 [dev-packages]
 flake8 = "*"
