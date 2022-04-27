@@ -1,12 +1,16 @@
 name: CI
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+      - dev
 
 jobs:
-  tests:
+  test_and_build_wheel:
     strategy:
       fail-fast: true
       matrix:
