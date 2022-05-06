@@ -24,7 +24,7 @@ def rubedo_model(
     pluralname: str,
     singularname: str,
     backend: Type[backend_base.BackendBase] = None,
-):
+) -> Type[ModelBase]:
     """
     Class decorator for generating repositories for model classes,
     parsing EnhancedFields, and setting the necessary class properties of the model.

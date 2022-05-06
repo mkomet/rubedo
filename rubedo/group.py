@@ -283,7 +283,7 @@ def __create_columns_alls(cls):
         setattr(cls, f"all_{field.name}", get_factory(field.name))
 
 
-def group_class(model_cls: Type) -> Type:
+def group_class(model_cls: Type) -> Type[Group]:
     def wrap(_cls):
         _cls._SUBGROUPS = dict()
         _cls._SUPER_GROUP_NAME = None
@@ -295,7 +295,7 @@ def group_class(model_cls: Type) -> Type:
     return wrap
 
 
-def subgroup_class(super_group: Type[Group], model_cls: Type) -> Type:
+def subgroup_class(super_group: Type[Group], model_cls: Type) -> Type[Group]:
     def wrap(_cls: Type):
         # TODO: Add recursion, and more sanity checks...
         _cls = group_class(model_cls=model_cls)(_cls)
